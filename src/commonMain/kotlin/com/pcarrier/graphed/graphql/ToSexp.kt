@@ -46,7 +46,6 @@ object ToSexp {
         when (definition) {
             is EnumValueDefinition -> SexpList(
                 listOf(
-                    SexpAtom("enum-value"),
                     SexpAtom(definition.name),
                     definition.description?.let { SexpString(it) } ?: SexpNil,
                     SexpList(definition.directives.map(ToSexp::directive)),
@@ -67,16 +66,15 @@ object ToSexp {
                 listOf(
                     SexpAtom("op"),
                     definition.name?.let(::SexpString) ?: SexpNil,
-                    SexpList(definition.variables.map(ToSexp::variableDefinition)),
-                    SexpList(definition.directives.map(ToSexp::directive)),
                     SexpAtom(definition.type.name),
+                    SexpList(definition.variables.map(ToSexp::definition)),
+                    SexpList(definition.directives.map(ToSexp::directive)),
                     SexpList(definition.selections.map(ToSexp::selection)),
                 )
             )
 
             is FieldDefinition -> SexpList(
                 listOf(
-                    SexpAtom("field-definition"),
                     definition.description?.let { SexpString(it) } ?: SexpNil,
                     SexpAtom(definition.name),
                     SexpList(definition.arguments.map(ToSexp::definition)),
@@ -87,7 +85,6 @@ object ToSexp {
 
             is InputValueDefinition -> SexpList(
                 listOf(
-                    SexpAtom("input-value"),
                     definition.description?.let { SexpString(it) } ?: SexpNil,
                     SexpAtom(definition.name),
                     type(definition.type),
@@ -98,8 +95,8 @@ object ToSexp {
 
             is DirectiveDefinition -> SexpList(
                 listOf(
-                    SexpAtom("directive"),
                     definition.description?.let { SexpString(it) } ?: SexpNil,
+                    SexpBoolean(definition.extend),
                     SexpAtom(definition.name),
                     SexpList(definition.arguments.map(ToSexp::definition)),
                     SexpBoolean(definition.repeatable),
@@ -109,8 +106,8 @@ object ToSexp {
 
             is SchemaDefinition -> SexpList(
                 listOf(
-                    SexpAtom("schema"),
                     definition.description?.let { SexpString(it) } ?: SexpNil,
+                    SexpBoolean(definition.extend),
                     SexpList(definition.directives.map(ToSexp::directive)),
                     SexpList(definition.operationTypes.map(ToSexp::operationType)),
                 )
@@ -120,6 +117,7 @@ object ToSexp {
                 listOf(
                     SexpAtom("enum"),
                     definition.description?.let { SexpString(it) } ?: SexpNil,
+                    SexpBoolean(definition.extend),
                     SexpAtom(definition.name),
                     SexpList(definition.directives.map(ToSexp::directive)),
                     SexpList(definition.values.map(ToSexp::definition)),
@@ -129,6 +127,7 @@ object ToSexp {
                 listOf(
                     SexpAtom("input"),
                     definition.description?.let { SexpString(it) } ?: SexpNil,
+                    SexpBoolean(definition.extend),
                     SexpAtom(definition.name),
                     SexpList(definition.directives.map(ToSexp::directive)),
                     SexpList(definition.fields.map(ToSexp::definition)),
@@ -138,6 +137,7 @@ object ToSexp {
                 listOf(
                     SexpAtom("interface"),
                     definition.description?.let { SexpString(it) } ?: SexpNil,
+                    SexpBoolean(definition.extend),
                     SexpAtom(definition.name),
                     SexpList(definition.directives.map(ToSexp::directive)),
                     SexpList(definition.fields.map(ToSexp::definition)),
@@ -147,6 +147,7 @@ object ToSexp {
                 listOf(
                     SexpAtom("type"),
                     definition.description?.let { SexpString(it) } ?: SexpNil,
+                    SexpBoolean(definition.extend),
                     SexpAtom(definition.name),
                     SexpList(definition.directives.map(ToSexp::directive)),
                     SexpList(definition.interfaces.map { SexpAtom(it) }),
@@ -157,6 +158,7 @@ object ToSexp {
                 listOf(
                     SexpAtom("scalar"),
                     definition.description?.let { SexpString(it) } ?: SexpNil,
+                    SexpBoolean(definition.extend),
                     SexpAtom(definition.name),
                     SexpList(definition.directives.map(ToSexp::directive)),
                 )
@@ -165,6 +167,7 @@ object ToSexp {
                 listOf(
                     SexpAtom("union"),
                     definition.description?.let { SexpString(it) } ?: SexpNil,
+                    SexpBoolean(definition.extend),
                     SexpAtom(definition.name),
                     SexpList(definition.directives.map(ToSexp::directive)),
                     SexpList(definition.types.map { SexpAtom(it) }),
@@ -172,7 +175,6 @@ object ToSexp {
             )
             is VariableDefinition -> SexpList(
                 listOf(
-                    SexpAtom("var"),
                     SexpAtom(definition.name),
                     type(definition.type),
                     definition.defaultValue?.let(ToSexp::value) ?: SexpNil,
@@ -185,16 +187,6 @@ object ToSexp {
         SexpList(listOf(SexpAtom(entry.key.name), SexpAtom(entry.value)))
 
     private fun directiveLocation(directiveLocation: DirectiveLocation) = SexpAtom(directiveLocation.name)
-
-    private fun variableDefinition(definition: VariableDefinition) = SexpList(
-        listOf(
-            SexpAtom("var"),
-            SexpAtom(definition.name),
-            type(definition.type),
-            definition.defaultValue?.let(ToSexp::value) ?: SexpNil,
-            SexpList(definition.directives.map(ToSexp::directive)),
-        )
-    )
 
     private fun type(type: Type): Sexp = when (type) {
         is NamedType -> SexpAtom(type.name)
@@ -233,7 +225,7 @@ object ToSexp {
     }
 
     private fun directive(directive: Directive) =
-        SexpList(listOf(SexpAtom("directive"), SexpString(directive.name), SexpList(directive.args.map(ToSexp::argument))))
+        SexpList(listOf(SexpString(directive.name), SexpList(directive.args.map(ToSexp::argument))))
 
     private fun argument(argument: Argument) =
         SexpList(listOf(SexpAtom("arg"), SexpString(argument.name), value(argument.value)))

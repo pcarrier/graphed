@@ -8,6 +8,8 @@ class Parser(val src: String) {
 
     fun parse(): Document =
         Document(src, buildList {
+            scanner.reset()
+            token = scanner.next()
             while (token !is Token.EndOfFile) {
                 if (token is Token.LeftBrace) {
                     val selections = parseSelections(optional = false)

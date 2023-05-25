@@ -6,6 +6,9 @@ import kotlin.math.pow
 class Scanner(val src: String) {
     private val len = src.length
     private var pos = 0
+
+    fun reset() { pos = 0 }
+
     fun remaining(): List<Token> =
         buildList {
             while (true) {
