@@ -14,10 +14,19 @@ plugins {
 kotlin {
     jvm {}
     js(IR) {
-        browser()
+        nodejs()
     }
     @OptIn(ExperimentalWasmDsl::class)
     wasm { d8() }
+
+    sourceSets {
+        val jvmTest by getting {
+            dependencies {
+                implementation("com.graphql-java:graphql-java:20.2")
+                implementation("org.jline:jline:3.23.0")
+            }
+        }
+    }
 }
 
 tasks.withType<ShadowJar> {
