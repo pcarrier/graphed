@@ -1,4 +1,4 @@
-package com.pcarrier.graphed
+package com.pcarrier.graphed.graphql
 
 enum class OperationType(val repr: String) {
     QUERY("query"),

@@ -1,4 +1,4 @@
-package com.pcarrier.graphed
+package com.pcarrier.graphed.graphql
 
 sealed class Token(val start: kotlin.Int, val end: kotlin.Int) {
     class EndOfFile(pos: kotlin.Int) : Token(pos, pos) {

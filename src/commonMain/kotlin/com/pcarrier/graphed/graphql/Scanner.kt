@@ -1,4 +1,4 @@
-package com.pcarrier.graphed
+package com.pcarrier.graphed.graphql
 
 import kotlin.math.min
 import kotlin.math.pow

@@ -1,4 +1,4 @@
-package com.pcarrier.graphed
+package com.pcarrier.graphed.graphql
 
 sealed class Argument(val name: String, val value: Value)
 class DynArgument(name: String, value: DynValue) : Argument(name, value)

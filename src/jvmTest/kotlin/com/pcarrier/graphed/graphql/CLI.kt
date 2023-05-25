@@ -1,4 +1,4 @@
-package com.pcarrier.graphed
+package com.pcarrier.graphed.graphql
 
 import graphql.language.AstPrinter
 import graphql.parser.ParserEnvironment

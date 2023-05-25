@@ -1,4 +1,4 @@
-package com.pcarrier.graphed
+package com.pcarrier.graphed.graphql
 
 val escaped = Regex("[\\x00-\\x1f\\x22\\x5c\\x7f-\\x9f]")
 val escapeSequences = listOf(
@@ -104,7 +104,7 @@ object Printer {
 
     private fun vars(variables: List<VariableDefinition>): String =
         if (variables.isEmpty()) ""
-        else variables.joinToString(" ", "(", ")", transform = ::def)
+        else variables.joinToString(" ", "(", ")", transform = Printer::def)
 
     private fun sels(selections: List<Selection>): String =
         if (selections.isEmpty()) "" else selections.joinToString(" ", "{", "}") { sel(it) }

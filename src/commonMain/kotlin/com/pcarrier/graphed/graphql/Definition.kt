@@ -1,4 +1,4 @@
-package com.pcarrier.graphed
+package com.pcarrier.graphed.graphql
 
 sealed class Definition(val directives: List<Directive>)
 sealed class ExecutableDefinition(directives: List<Directive>, val selections: List<Selection>) :
