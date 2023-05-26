@@ -269,14 +269,13 @@ class Scanner(val src: String) {
             }
         }
 
+        if (negnum) num = -num
         if (float) {
-            if (negnum) num = -num
             var res = num.toDouble()
             if (ne) e = -e
             if (period >= 0) e -= period
             return Token.Float(start, pos, res * 10.toDouble().pow(e))
         } else {
-            if (negnum) num = -num
             return Token.Int(start, pos, num)
         }
     }

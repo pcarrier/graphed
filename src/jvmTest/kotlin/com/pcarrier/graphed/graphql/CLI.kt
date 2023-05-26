@@ -63,7 +63,7 @@ object CLI {
         val started = System.nanoTime()
         return lambda().also {
             val took = System.nanoTime() - started
-            System.err.println("$name took ${took / 1000}μs")
+            System.err.printf("%15s %9fs\n", name, took.toDouble() / 1e9)
         }
     }
 
