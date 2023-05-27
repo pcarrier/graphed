@@ -1,8 +1,11 @@
 package com.pcarrier.graphed.graphql
 
 sealed class Definition(val directives: List<Directive>)
+
+sealed class TopLevelDefinition(directives: List<Directive>) : Definition(directives)
+
 sealed class ExecutableDefinition(directives: List<Directive>, val selections: List<Selection>) :
-    Definition(directives)
+    TopLevelDefinition(directives)
 
 class OperationDefinition(
     val name: String?,
@@ -22,7 +25,7 @@ class FragmentDefinition(
     ExecutableDefinition(directives, selections)
 
 sealed class TypeSystemDefinition(val description: String?, val extend: Boolean, directives: List<Directive>) :
-    Definition(directives)
+    TopLevelDefinition(directives)
 
 class SchemaDefinition(
     description: String?,
