@@ -97,7 +97,7 @@ object Printer {
         }
 
     private fun impls(interfaces: List<String>) =
-        if (interfaces.isEmpty()) "" else interfaces.joinToString("&", " implements")
+        if (interfaces.isEmpty()) "" else interfaces.joinToString("&", " implements ")
 
     private fun maybeDefault(value: Value?): String =
         if (value == null) "" else "=${`val`(value)}"
