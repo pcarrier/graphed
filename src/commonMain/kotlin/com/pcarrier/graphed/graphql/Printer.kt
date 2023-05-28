@@ -67,7 +67,7 @@ object Printer {
                 }"
 
             is InputValueDefinition ->
-                "${str(def.description)} ${def.name}:${def.type}${maybeDefault(def.defaultValue)}${dirs(def.directives)}"
+                "${str(def.description)}${def.name}:${def.type}${maybeDefault(def.defaultValue)}${dirs(def.directives)}"
 
             is InputObjectTypeDefinition -> {
                 "${str(def.description)}input ${def.name}${dirs(def.directives)}${
@@ -88,7 +88,7 @@ object Printer {
             }
 
             is FieldDefinition -> {
-                "${str(def.description)} ${def.name}${
+                "${str(def.description)}${def.name}${
                     if (def.arguments.isEmpty()) "" else def.arguments.joinToString(" ", "(", ")") { def(it) }
                 }:${def.type}${dirs(def.directives)}"
             }
