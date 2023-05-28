@@ -26,7 +26,7 @@ val escapeSequences = listOf(
 
 object Printer {
     fun printDocument(doc: Document): String =
-        doc.definitions.joinToString("\n") { def(it) }
+        doc.definitions.joinToString("") { def(it) }
 
     private fun def(def: Definition): String =
         when (def) {

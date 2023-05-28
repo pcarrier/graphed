@@ -2,14 +2,14 @@ package com.pcarrier.graphed.graphql
 
 class Parser(val src: String) {
     private val scanner = Scanner(src)
-    private var token = scanner.next()
+    private var token = scanner.scan()
 
-    private fun advance(): Token = scanner.next().also { token = it }
+    private fun advance(): Token = scanner.scan().also { token = it }
 
     fun parse(): Document =
         Document(src, buildList {
             scanner.reset()
-            token = scanner.next()
+            token = scanner.scan()
             while (token !is Token.EndOfFile) {
                 if (token is Token.LeftBrace) {
                     val selections = parseSelections(optional = false)
