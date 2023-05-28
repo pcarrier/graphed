@@ -1,36 +1,37 @@
 package com.pcarrier.graphed.graphql
 
-import kotlin.math.min
 import kotlin.math.pow
 
 class Scanner(val src: String) {
     private val len = src.length
     private var pos = 0
 
-    fun reset() { pos = 0 }
+    fun reset() {
+        pos = 0
+    }
 
     fun remaining(): List<Token> =
         buildList {
             while (true) {
-                val token = next()
+                val token = scan()
                 add(token)
                 if (token is Token.EndOfFile) return@buildList
             }
         }
 
-    fun next(): Token {
+    fun scan(): Token {
         skipWhitespaceAndComments()
         if (pos == len) {
             return Token.EndOfFile(pos)
         }
         return when (val c = src[pos]) {
-            in ('A'..'Z'), '_', in ('a'..'z') -> readName()
-            '-', in '0'..'9' -> readNumber()
+            in ('A'..'Z'), '_', in ('a'..'z') -> scanName()
+            '-', in '0'..'9' -> scanNumber()
             '"' -> {
                 if (len > pos + 2 && src[pos + 1] == '"' && src[pos + 2] == '"') {
-                    return readBlockString()
+                    return scanBlockString()
                 } else {
-                    return readString()
+                    return scanString()
                 }
             }
 
@@ -60,7 +61,7 @@ class Scanner(val src: String) {
         }
     }
 
-    private fun readUnicode(): Char {
+    private fun scanUnicode(): Char {
         val start = pos
         if (++pos == len) {
             throw ScannerException("Unfinished Unicode escape", start)
@@ -68,6 +69,7 @@ class Scanner(val src: String) {
         val codeString = when (src[pos]) {
             '{' -> {
                 val builder = StringBuilder()
+                var seen = 0;
                 while (true) {
                     if (++pos == len) {
                         throw ScannerException("Unfinished Unicode escape", start)
@@ -76,9 +78,13 @@ class Scanner(val src: String) {
                     if (c == '}') {
                         break
                     } else if (c in '0'..'9' || c in 'A'..'F' || c in 'a'..'f') {
+                        seen++
+                        if (seen > 4) {
+                            throw ScannerException("Invalid Unicode escape, too many characters", start)
+                        }
                         builder.append(c)
                     } else {
-                        throw ScannerException("Invalid Unicode escape", start)
+                        throw ScannerException("Invalid Unicode escape, unexpected character", start)
                     }
                 }
                 builder.toString().also { pos++ }
@@ -91,7 +97,7 @@ class Scanner(val src: String) {
                 src.substring(pos, pos + 4).also { pos += 4 }
             }
 
-            else -> throw ScannerException("Invalid Unicode escape", start)
+            else -> throw ScannerException("Invalid Unicode escape, unexpected character", start)
         }
         return try {
             codeString.toInt(16).toChar()
@@ -100,7 +106,7 @@ class Scanner(val src: String) {
         }
     }
 
-    private fun readString(): Token {
+    private fun scanString(): Token {
         val builder = StringBuilder()
         val start = pos
         pos++
@@ -119,7 +125,7 @@ class Scanner(val src: String) {
                         'n' -> builder.append('\n').also { pos++ }
                         'r' -> builder.append('\r').also { pos++ }
                         't' -> builder.append('\t').also { pos++ }
-                        'u' -> builder.append(readUnicode())
+                        'u' -> builder.append(scanUnicode())
                         else -> builder.append(e).also { pos++ }
                     }
                 }
@@ -131,85 +137,133 @@ class Scanner(val src: String) {
         throw ScannerException("Unfinished string", pos)
     }
 
-    private fun readBlockString(): Token {
-        val start = pos
-        pos += 3
-        val lines = mutableListOf<String>()
-        var builder = StringBuilder()
-
-        while (pos < len) {
-            when (val c = src[pos]) {
+    private fun scanBlockStringForIndent(): Int {
+        var p = pos
+        var indent = Int.MAX_VALUE
+        var lindent = 0
+        var leftWs = false
+        while (p < len) {
+            when (src[p]) {
                 '"' -> {
-                    if (pos + 2 < len && src[pos + 1] == '"' && src[pos + 2] == '"') {
-                        pos += 3
-                        lines.add(builder.toString())
-                        var firstNonEmpty: Int? = null
-                        var lastNonEmpty = -1
-                        var commonIndent = Int.MAX_VALUE
-                        lines.forEachIndexed { i, s ->
-                            val indent = countLeadingWhitespace(s)
-                            if (indent != null) {
-                                if (firstNonEmpty == null) firstNonEmpty = i
-                                lastNonEmpty = i
-                                if (i != 0 && indent < commonIndent) commonIndent = indent
-                            }
-                        }
-                        return Token.String(start, pos,
-                            lines
-                                .mapIndexed { i, l -> if (i == 0) l else l.substring(min(l.length, commonIndent)) }
-                                .subList(firstNonEmpty ?: 0, lastNonEmpty + 1)
-                                .joinToString("\n")
-                        ).also { pos++ }
-                    } else {
-                        builder.append(c).also { pos++ }
+                    if (p + 2 < len && src[p + 1] == '"' && src[p + 2] == '"') {
+                        return indent
                     }
                 }
 
                 '\\' -> {
-                    if (pos == len) {
-                        throw ScannerException("Unfinished escaping", pos)
+                    if (p + 3 < len && src[p + 1] == '\"' && src[p + 2] == '\"' && src[p + 3] == '\"') {
+                        p += 3
                     }
+                }
+
+                '\n' -> break
+                else -> {}
+            }
+            p++
+        }
+        while (p < len) {
+            when (src[p]) {
+                '"' -> {
+                    if (p + 2 < len && src[p + 1] == '"' && src[p + 2] == '"') {
+                        if (leftWs && lindent < indent) indent = lindent
+                        return indent
+                    }
+                    leftWs = true
+                }
+
+                '\\' -> {
+                    leftWs = true
+                    if (p + 3 < len && src[p + 1] == '\"' && src[p + 2] == '\"' && src[p + 3] == '\"') {
+                        p += 3
+                    }
+                }
+
+                ' ', '\t' -> if (!leftWs) lindent++
+                '\n' -> {
+                    if (leftWs && lindent < indent) indent = lindent
+                    lindent = 0
+                    leftWs = true
+                }
+
+                else -> leftWs = true
+            }
+            p++
+        }
+        return indent
+    }
+
+    private fun scanBlockString(): Token {
+        val start = pos
+        pos += 3
+        val indent = scanBlockStringForIndent()
+        val builder = StringBuilder()
+        var lstart = pos
+        var inIndent = true
+        var ws = 0
+        while (pos < len) {
+            when (val c = src[pos]) {
+                ' ', '\t' -> {
+                    ws++
+                    if (inIndent) {
+                        if (ws == indent) {
+                            inIndent = false
+                        }
+                    } else {
+                        builder.append(c)
+                    }
+                }
+                '"' -> {
+                    inIndent = false
+                    if (pos + 2 < len && src[pos + 1] == '"' && src[pos + 2] == '"') {
+                        if (ws == pos - lstart - 1) {
+                            builder.setLength(builder.length - pos + lstart)
+                        }
+                        pos += 3
+                        return Token.String(start, pos, builder.toString())
+                    } else {
+                        builder.append(c)
+                    }
+                }
+                '\\' -> {
+                    inIndent = false
                     when (val e = src[++pos]) {
+                        'b' -> builder.append('\b')
+                        'f' -> builder.append('\u000C')
+                        'n' -> builder.append('\n')
+                        'r' -> builder.append('\r')
+                        't' -> builder.append('\t')
+                        'u' -> builder.append(scanUnicode())
                         '"' -> {
                             if (pos + 2 < len && src[pos + 1] == '"' && src[pos + 2] == '"') {
-                                builder.append("\"\"\"").also { pos += 3 }
+                                builder.append("\"\"\"").also { pos += 2 }
                             } else {
-                                builder.append("\"").also { pos++ }
+                                builder.append(e)
                             }
                         }
-
-                        'b' -> builder.append('\b').also { pos++ }
-                        'f' -> builder.append('\u000C').also { pos++ }
-                        'n' -> builder.append('\n').also { pos++ }
-                        'r' -> builder.append('\r').also { pos++ }
-                        't' -> builder.append('\t').also { pos++ }
-                        'u' -> builder.append(readUnicode())
-                        else -> builder.append(e).also { pos++ }
+                        else -> builder.append(e)
                     }
                 }
-
                 '\n' -> {
-                    lines.add(builder.toString())
-                    builder = StringBuilder()
-                    pos++
+                    if (ws == pos - lstart) {
+                        builder.setLength(builder.length - pos + lstart)
+                    } else {
+                        builder.append(c)
+                    }
+                    inIndent = true
+                    ws = 0
+                    lstart = pos
                 }
-
-                else -> builder.append(c).also { pos++ }
+                else -> {
+                    inIndent = false
+                    builder.append(c)
+                }
             }
+            pos++
         }
-        throw ScannerException("Unfinished string", pos)
+        throw ScannerException("Unfinished block string", start)
     }
 
-    private fun countLeadingWhitespace(src: String): Int? {
-        for (idx in src.indices) {
-            if (src[idx] != ' ' && src[idx] != '\t') {
-                return idx
-            }
-        }
-        return null
-    }
-
-    private fun readNumber(): Token {
+    private fun scanNumber(): Token {
         val start = pos
         var float = false
         var period = -1
@@ -280,16 +334,18 @@ class Scanner(val src: String) {
         }
     }
 
-    private fun readName(): Token {
+    private fun scanName(): Token {
         val start = pos
         val n = StringBuilder()
         while (pos < len) {
             val c = src[pos]
-            if (c == '_' || c in '0'..'9' || c in 'A'..'Z' || c in 'a'..'z') {
-                n.append(c)
-                pos++
-            } else {
-                break
+            when (c) {
+                '_', in '0'..'9', in 'A'..'Z', in 'a'..'z' -> {
+                    n.append(c)
+                    pos++
+                }
+
+                else -> break
             }
         }
         return Token.Name(start = start, end = pos, value = n.toString())

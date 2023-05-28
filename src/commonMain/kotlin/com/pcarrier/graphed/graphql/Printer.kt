@@ -26,7 +26,7 @@ val escapeSequences = listOf(
 
 object Printer {
     fun printDocument(doc: Document): String =
-        doc.definitions.joinToString("\n") { def(it) }
+        doc.definitions.joinToString("") { def(it) }
 
     private fun def(def: Definition): String =
         when (def) {
@@ -88,7 +88,7 @@ object Printer {
             }
 
             is FieldDefinition -> {
-                "${str(def.description)} ${def.name}${
+                "${str(def.description)}${def.name}${
                     if (def.arguments.isEmpty()) "" else def.arguments.joinToString(" ", "(", ")") { def(it) }
                 }:${def.type}${dirs(def.directives)}"
             }

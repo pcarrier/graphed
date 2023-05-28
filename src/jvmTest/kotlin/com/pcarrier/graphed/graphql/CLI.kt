@@ -91,7 +91,9 @@ object CLI {
         val sexp = timed("sexp") { ToSexp.document(doc).toString() }
         val javaPrinted = timed("java print") { AstPrinter.printAst(javaDoc) }
         System.err.println("prints to ${printed.length} (java ${javaPrinted.length}), sexp to ${sexp.length}")
-        if (dest != null) {
+        if (dest == null) {
+            println(printed)
+        } else {
             val dir = File(dest)
             dir.mkdirs()
             dir.resolve("kotlin.graphql").writeText(printed)
