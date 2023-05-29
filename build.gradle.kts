@@ -1,47 +1,98 @@
-import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 import org.jetbrains.kotlin.gradle.targets.js.dsl.ExperimentalWasmDsl
-
-repositories {
-    mavenCentral()
-}
 
 plugins {
     kotlin("multiplatform").version("1.8.21")
-    java
-    id("com.github.johnrengelman.shadow").version("8.1.1")
+    id("maven-publish")
+    id("signing")
 }
 
-kotlin {
-    jvm {}
-    js(IR) {
-        nodejs()
+allprojects {
+    repositories {
+        mavenCentral()
     }
-    @OptIn(ExperimentalWasmDsl::class)
-    wasm { d8() }
 
-    @Suppress("UNUSED_VARIABLE")
-    sourceSets {
-        val jvmTest by getting {
-            dependencies {
-                implementation("com.graphql-java:graphql-java:20.2")
-                implementation("org.jline:jline:3.23.0")
-            }
+    apply(plugin = "kotlin-multiplatform")
+    apply(plugin = "maven-publish")
+    apply(plugin = "signing")
+
+    group = "com.pcarrier.graphed"
+    version = "0.1.0-SNAPSHOT"
+
+    kotlin {
+        jvm {}
+        js(IR) {
+            browser()
+            nodejs()
         }
 
-        val commonTest by getting {
-            dependencies {
-                implementation(kotlin("test"))
+        @Suppress("UNUSED_VARIABLE")
+        sourceSets {
+            val jvmTest by getting {
+                dependencies {
+                    implementation("com.graphql-java:graphql-java:20.2")
+                    implementation("org.jline:jline:3.23.0")
+                }
+            }
+
+            val commonTest by getting {
+                dependencies {
+                    implementation(kotlin("test"))
+                }
             }
         }
     }
-}
 
-tasks.withType<ShadowJar> {
-    manifest {
-        attributes("Main-Class" to "com.pcarrier.graphed.graphql.ParseAndPrint")
+    publishing {
+        publications {
+            repositories {
+                maven {
+                    name = "oss"
+                    val releasesRepoUrl = uri("https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/")
+                    val snapshotsRepoUrl = uri("https://s01.oss.sonatype.org/content/repositories/snapshots/")
+                    url = if (version.toString().endsWith("SNAPSHOT")) snapshotsRepoUrl else releasesRepoUrl
+                    credentials {
+                        username = System.getenv("SONATYPE_USERNAME")
+                        password = System.getenv("SONATYPE_PASSWORD")
+                    }
+                }
+            }
+
+            withType<MavenPublication> {
+                pom {
+                    name.set(project.name)
+                    description.set("GraphQL and co.")
+                    licenses {
+                        license {
+                            name.set("0BSD")
+                            url.set("https://opensource.org/license/0bsd/")
+                        }
+                    }
+                    url.set("https://github.com/pcarrier/graphed")
+                    issueManagement {
+                        system.set("Github")
+                        url.set("https://github.com/pcarrier/graphed/issues")
+                    }
+                    scm {
+                        connection.set("https://github.com/pcarrier/graphed.git")
+                        url.set("https://github.com/pcarrier/graphed")
+                    }
+                    developers {
+                        developer {
+                            name.set("Pierre Carrier")
+                            email.set("pc@rrier.fr")
+                        }
+                    }
+                }
+            }
+        }
     }
-    val main by kotlin.jvm().compilations
-    from(main.output)
-    configurations += main.compileDependencyFiles as Configuration
-    configurations += main.runtimeDependencyFiles as Configuration
+
+    signing {
+        useInMemoryPgpKeys(
+            "988CC12E",
+            System.getenv("GPG_PRIVATE_KEY")?.let { File(it).readText() },
+            System.getenv("GPG_PRIVATE_PASSWORD")
+        )
+        sign(publishing.publications)
+    }
 }
