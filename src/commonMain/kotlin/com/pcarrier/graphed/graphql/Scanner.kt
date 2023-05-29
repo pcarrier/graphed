@@ -198,7 +198,9 @@ class Scanner(val src: String) {
         val builder = StringBuilder()
         var lstart = pos
         var inIndent = true
+        var seenNonWs = false
         var ws = 0
+        var lproduced = 0
         while (pos < len) {
             when (val c = src[pos]) {
                 ' ', '\t' -> {
@@ -208,52 +210,75 @@ class Scanner(val src: String) {
                             inIndent = false
                         }
                     } else {
-                        builder.append(c)
+                        builder.append(c).also { lproduced++ }
                     }
                 }
+
                 '"' -> {
                     inIndent = false
+                    seenNonWs = true
                     if (pos + 2 < len && src[pos + 1] == '"' && src[pos + 2] == '"') {
-                        if (ws == pos - lstart - 1) {
-                            builder.setLength(builder.length - pos + lstart)
-                        }
-                        pos += 3
-                        return Token.String(start, pos, builder.toString())
-                    } else {
-                        builder.append(c)
-                    }
-                }
-                '\\' -> {
-                    inIndent = false
-                    when (val e = src[++pos]) {
-                        'b' -> builder.append('\b')
-                        'f' -> builder.append('\u000C')
-                        'n' -> builder.append('\n')
-                        'r' -> builder.append('\r')
-                        't' -> builder.append('\t')
-                        'u' -> builder.append(scanUnicode())
-                        '"' -> {
-                            if (pos + 2 < len && src[pos + 1] == '"' && src[pos + 2] == '"') {
-                                builder.append("\"\"\"").also { pos += 2 }
+                        if (ws == pos - lstart) {
+                            if (seenNonWs) {
+                                builder.setLength(builder.length - lproduced)
                             } else {
-                                builder.append(e)
+                                builder.setLength(0)
                             }
                         }
-                        else -> builder.append(e)
+                        pos += 3
+                        for (i in builder.length - 1 downTo 0) {
+                            if (builder[i] != '\n') {
+                                builder.setLength(i + 1)
+                                break
+                            }
+                        }
+                        return Token.String(start, pos, builder.toString())
+                    } else {
+                        builder.append(c).also { lproduced++ }
                     }
                 }
+
+                '\\' -> {
+                    inIndent = false
+                    seenNonWs = true
+                    when (val e = src[++pos]) {
+                        'b' -> builder.append('\b').also { lproduced++ }
+                        'f' -> builder.append('\u000C').also { lproduced++ }
+                        'n' -> builder.append('\n').also { lproduced++ }
+                        'r' -> builder.append('\r').also { lproduced++ }
+                        't' -> builder.append('\t').also { lproduced++ }
+                        'u' -> builder.append(scanUnicode()).also { lproduced++ }
+                        '"' -> {
+                            if (pos + 2 < len && src[pos + 1] == '"' && src[pos + 2] == '"') {
+                                builder.append("\"\"\"").also { pos += 2; lproduced += 3 }
+                            } else {
+                                builder.append(e).also { lproduced++ }
+                            }
+                        }
+
+                        else -> builder.append(e).also { lproduced++ }
+                    }
+                }
+
                 '\n' -> {
                     if (ws == pos - lstart) {
-                        builder.setLength(builder.length - pos + lstart)
+                        if (seenNonWs) {
+                            builder.setLength(builder.length - lproduced)
+                        } else {
+                            builder.setLength(0)
+                        }
                     } else {
                         builder.append(c)
                     }
                     inIndent = true
                     ws = 0
-                    lstart = pos
+                    lstart = pos + 1
+                    lproduced = 0
                 }
+
                 else -> {
                     inIndent = false
+                    seenNonWs = true
                     builder.append(c)
                 }
             }
