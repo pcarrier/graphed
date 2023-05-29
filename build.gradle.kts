@@ -1,5 +1,3 @@
-import org.jetbrains.kotlin.gradle.targets.js.dsl.ExperimentalWasmDsl
-
 plugins {
     kotlin("multiplatform").version("1.8.21")
     id("maven-publish")
@@ -47,9 +45,9 @@ allprojects {
             repositories {
                 maven {
                     name = "oss"
-                    val releasesRepoUrl = uri("https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/")
-                    val snapshotsRepoUrl = uri("https://s01.oss.sonatype.org/content/repositories/snapshots/")
-                    url = if (version.toString().endsWith("SNAPSHOT")) snapshotsRepoUrl else releasesRepoUrl
+                    url = if (version.toString().endsWith("SNAPSHOT"))
+                        uri("https://s01.oss.sonatype.org/content/repositories/snapshots/")
+                    else uri("https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/")
                     credentials {
                         username = System.getenv("SONATYPE_USERNAME")
                         password = System.getenv("SONATYPE_PASSWORD")
