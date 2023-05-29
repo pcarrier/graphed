@@ -16,7 +16,7 @@ allprojects {
     apply(plugin = "signing")
 
     group = "com.pcarrier.graphed"
-    version = "0.1.0-SNAPSHOT"
+    version = "0.1.0"
 
     kotlin {
         jvm {}
