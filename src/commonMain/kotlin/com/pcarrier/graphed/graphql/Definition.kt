@@ -38,7 +38,7 @@ class SchemaDefinition(
 class DirectiveDefinition(
     description: String?,
     val name: String,
-    val arguments: List<InputValueDefinition>,
+    val args: List<InputValueDefinition>,
     val repeatable: Boolean,
     val locations: List<DirectiveLocation>
 ) :
@@ -63,7 +63,7 @@ class ScalarTypeDefinition(
 class FieldDefinition(
     val description: String?,
     val name: String,
-    val arguments: List<InputValueDefinition>,
+    val args: List<InputValueDefinition>,
     val type: Type,
     directives: List<Directive>
 ) :

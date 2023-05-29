@@ -36,7 +36,6 @@ class Scanner(val src: String) {
             }
 
             '!' -> return Token.ExclamationPoint(pos).also { pos++ }
-            '?' -> return Token.QuestionMark(pos).also { pos++ }
             '$' -> return Token.Dollar(pos).also { pos++ }
             '&' -> return Token.Ampersand(pos).also { pos++ }
             '(' -> return Token.LeftParenthesis(pos).also { pos++ }

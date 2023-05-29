@@ -59,7 +59,7 @@ class Parser(val src: String) {
                             "Expected 'on' after fragment spread",
                             on
                         )
-                        val typeCondition = advance()
+                        val typeCondition = advance().also { advance() }
                         if (typeCondition !is Token.Name) throw ParserException(
                             "Expected type condition",
                             typeCondition
@@ -455,6 +455,8 @@ class Parser(val src: String) {
             }
         }
         advance()
+    }.also {
+        if (it.isEmpty()) throw ParserException("Expected at least one selection", token)
     }
 
     private fun parseVariables(): List<VariableDefinition> = buildList {

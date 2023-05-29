@@ -11,7 +11,7 @@ class InlineFragment(val typeCondition: String, directives: List<Directive>, val
 class Field(
     val alias: String?,
     val name: String,
-    val arguments: List<Argument>,
+    val args: List<Argument>,
     directives: List<Directive>,
     val selections: List<Selection>
 ) :

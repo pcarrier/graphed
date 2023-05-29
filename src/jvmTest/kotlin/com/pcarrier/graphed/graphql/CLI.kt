@@ -87,7 +87,7 @@ object CLI {
                     .build()
             )
         }
-        val printed = timed("kotlin print") { Printer.printDocument(doc) }
+        val printed = timed("kotlin print") { Printer().printDocument(doc) }
         val sexp = timed("sexp") { ToSexp.document(doc).toString() }
         val javaPrinted = timed("java print") { AstPrinter.printAst(javaDoc) }
         System.err.println("prints to ${printed.length} (java ${javaPrinted.length}), sexp to ${sexp.length}")

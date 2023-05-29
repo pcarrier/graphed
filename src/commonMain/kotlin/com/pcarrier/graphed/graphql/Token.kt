@@ -9,10 +9,6 @@ sealed class Token(val start: kotlin.Int, val end: kotlin.Int) {
         override fun toString() = "!"
     }
 
-    class QuestionMark(pos: kotlin.Int) : Token(pos, pos + 1) {
-        override fun toString() = "?"
-    }
-
     class Dollar(pos: kotlin.Int) : Token(pos, pos + 1) {
         override fun toString() = "$"
     }

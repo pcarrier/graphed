@@ -38,7 +38,7 @@ kotlin {
 
 tasks.withType<ShadowJar> {
     manifest {
-        attributes("Main-Class" to "com.pcarrier.graphed.graphql.ScanAndPrint")
+        attributes("Main-Class" to "com.pcarrier.graphed.graphql.ParseAndPrint")
     }
     val main by kotlin.jvm().compilations
     from(main.output)

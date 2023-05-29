@@ -5,12 +5,15 @@ data class SexpList(val list: List<Sexp>) : Sexp {
     override fun toString() = list.joinToString(" ", "(", ")")
 }
 
+private fun str(str: String?): String =
+    str?.replace(escaped) { escapeSequences[it.value[0].code] }?.let { "\"$it\"" } ?: ""
+
 data class SexpAtom(val atom: String) : Sexp {
     override fun toString() = atom
 }
 
 data class SexpString(val string: String) : Sexp {
-    override fun toString() = Printer.str(string)
+    override fun toString() = str(string)
 }
 
 data class SexpLong(val long: Long) : Sexp {
@@ -77,7 +80,7 @@ object ToSexp {
                 listOf(
                     definition.description?.let { SexpString(it) } ?: SexpNil,
                     SexpAtom(definition.name),
-                    SexpList(definition.arguments.map(ToSexp::definition)),
+                    SexpList(definition.args.map(ToSexp::definition)),
                     type(definition.type),
                     SexpList(definition.directives.map(ToSexp::directive)),
                 )
@@ -98,7 +101,7 @@ object ToSexp {
                     definition.description?.let { SexpString(it) } ?: SexpNil,
                     SexpBoolean(definition.extend),
                     SexpAtom(definition.name),
-                    SexpList(definition.arguments.map(ToSexp::definition)),
+                    SexpList(definition.args.map(ToSexp::definition)),
                     SexpBoolean(definition.repeatable),
                     SexpList(definition.locations.map(ToSexp::directiveLocation)),
                 )
@@ -200,7 +203,7 @@ object ToSexp {
                 SexpAtom("field"),
                 selection.alias?.let(::SexpString) ?: SexpNil,
                 SexpAtom(selection.name),
-                SexpList(selection.arguments.map(ToSexp::argument)),
+                SexpList(selection.args.map(ToSexp::argument)),
                 SexpList(selection.directives.map(ToSexp::directive)),
                 SexpList(selection.selections.map(ToSexp::selection)),
             )
