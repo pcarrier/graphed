@@ -259,7 +259,11 @@ class Scanner(val src: String) {
                         else -> builder.append(e).also { lproduced++ }
                     }
                 }
-
+                '\r' -> {
+                    if (pos + 1 == len || src[pos + 1] != '\n') {
+                        builder.append(c).also { lproduced++ }
+                    }
+                }
                 '\n' -> {
                     if (ws == pos - lstart) {
                         if (seenNonWs) {
