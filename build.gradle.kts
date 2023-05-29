@@ -2,6 +2,7 @@ plugins {
     kotlin("multiplatform").version("1.8.21")
     id("maven-publish")
     id("signing")
+    id("org.jetbrains.dokka").version("1.6.21")
 }
 
 allprojects {
@@ -11,6 +12,7 @@ allprojects {
 
     apply(plugin = "kotlin-multiplatform")
     apply(plugin = "maven-publish")
+    apply(plugin = "org.jetbrains.dokka")
     apply(plugin = "signing")
 
     group = "com.pcarrier.graphed"
@@ -40,6 +42,11 @@ allprojects {
         }
     }
 
+    val dokkaJar by tasks.creating(Jar::class) {
+        archiveClassifier.set("javadoc")
+        from(tasks.dokkaHtml)
+    }
+
     publishing {
         publications {
             repositories {
@@ -56,6 +63,8 @@ allprojects {
             }
 
             withType<MavenPublication> {
+                artifact(dokkaJar)
+
                 pom {
                     name.set(project.name)
                     description.set("GraphQL and co.")
@@ -92,5 +101,10 @@ allprojects {
             System.getenv("GPG_PRIVATE_PASSWORD")
         )
         sign(publishing.publications)
+    }
+
+    // Please the Gradle gods.
+    tasks.withType<AbstractPublishToMaven>().configureEach {
+        dependsOn(tasks.withType<Sign>())
     }
 }
