@@ -27,13 +27,6 @@ allprojects {
 
         @Suppress("UNUSED_VARIABLE")
         sourceSets {
-            val jvmTest by getting {
-                dependencies {
-                    implementation("com.graphql-java:graphql-java:20.2")
-                    implementation("org.jline:jline:3.23.0")
-                }
-            }
-
             val commonTest by getting {
                 dependencies {
                     implementation(kotlin("test"))
