@@ -9,7 +9,8 @@ class ScannerTest {
         val strings = listOf(
             "\"\"\"abc\n\ndef\"\"\"",
             "\"\"\"abc\n    \n  def\"\"\"",
-            "\"\"\"abc\n  \ndef\n\n\"\"\""
+            "\"\"\"abc\n  \ndef\n\n\"\"\"",
+            "    \"\"\"abc\n  \ndef\n   \n    \"\"\""
         )
         strings.forEachIndexed { i, s ->
             val scanner = Scanner(s)
