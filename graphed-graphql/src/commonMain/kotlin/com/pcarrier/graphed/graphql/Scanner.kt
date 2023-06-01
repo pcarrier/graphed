@@ -268,6 +268,7 @@ class Scanner(val src: String) {
                     if (ws == pos - lstart) {
                         if (seenNonWs) {
                             builder.setLength(builder.length - lproduced)
+                            builder.append(c)
                         } else {
                             builder.setLength(0)
                         }
@@ -283,7 +284,7 @@ class Scanner(val src: String) {
                 else -> {
                     inIndent = false
                     seenNonWs = true
-                    builder.append(c)
+                    builder.append(c).also { lproduced++ }
                 }
             }
             pos++
