@@ -19,4 +19,19 @@ class ScannerTest {
             assertEquals("abc\n\ndef", (result[0] as Token.String).value, "Wrong block string in $i")
         }
     }
+
+    @Test
+    fun blockString2() {
+        val string = "\"\"\"\n" +
+                "  first line\n" +
+                "   \n" +
+                "  second line\n" +
+                "   \n" +
+                "\"\"\""
+
+        val tokens = Scanner(string).remaining()
+
+        assertEquals(2, tokens.size)
+        assertEquals("first line\n \nsecond line", (tokens.first() as Token.String).value)
+    }
 }
