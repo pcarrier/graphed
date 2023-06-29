@@ -115,7 +115,7 @@ class Scanner(val src: String) {
                 '"' -> return Token.String(start, ++pos, builder.toString())
 
                 '\\' -> {
-                    if (pos == len) {
+                    if (pos == len - 1) {
                         throw ScannerException("Unfinished escaping", pos)
                     }
                     when (val e = src[++pos]) {

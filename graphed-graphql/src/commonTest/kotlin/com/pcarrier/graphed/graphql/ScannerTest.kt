@@ -19,4 +19,11 @@ class ScannerTest {
             assertEquals("abc\n\ndef", (result[0] as Token.String).value, "Wrong block string in $i")
         }
     }
+
+    @Test
+    fun string() {
+        val string = "\"\\"
+
+        Scanner(string).remaining()
+    }
 }
