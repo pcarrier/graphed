@@ -1,6 +1,6 @@
 package com.pcarrier.graphed.graphql
 
-internal class Scanner(val src: String) {
+class Scanner(val src: String) {
     private var pos = 0
     private val len = src.length
 
